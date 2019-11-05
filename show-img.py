@@ -1,8 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-plt.ion()
-
 axial = np.load("./dataset/MRNet-v1.0/train/axial/0000.npy")
 coronal = np.load("./dataset/MRNet-v1.0/train/coronal/0000.npy")
 sagittal = np.load("./dataset/MRNet-v1.0/train/sagittal/0000.npy")
@@ -28,5 +26,5 @@ ax5.set_title('Case 0 | Slice 2 | coronal')
 ax6.imshow(sagittal[1, :, :], 'gray')
 ax6.set_title('Case 0 | Slice 2 | sagittal')
 
-input("press enter to continue")
+plt.show()
 
