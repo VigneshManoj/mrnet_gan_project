@@ -23,13 +23,14 @@ from keras.models import Model
 from tqdm import tqdm
 from keras.applications.imagenet_utils import preprocess_input
 from keras.applications.xception import Xception
+from keras.preprocessing.image import array_to_img
 
 
 from IPython import display
 #(train_images, train_labels), (_, _) = tf.keras.datasets.mnist.load_data()
 
-WIDTH = 128
-HEIGHT = 128
+WIDTH = 28
+HEIGHT = 28
 
 #load y_train and y_test
 train_acl_lbl = []
@@ -88,17 +89,17 @@ del(valid_acl_lbl)
 del(valid_meniscus_lbl)
 
 #load x_train
-train_dataset = np.zeros([38778,WIDTH,HEIGHT,3], dtype='uint8')
-train_coronal = np.zeros([33649,WIDTH,HEIGHT,3], dtype='uint8') 
-train_sagittal = np.zeros([34370,WIDTH,HEIGHT,3],dtype='uint8')
+train_axial = np.zeros([38778,WIDTH,HEIGHT], dtype='uint8')
+train_coronal = np.zeros([33649,WIDTH,HEIGHT], dtype='uint8') 
+train_sagittal = np.zeros([34370,WIDTH,HEIGHT],dtype='uint8')
 
-train_dataset_lbl = np.zeros([38778], dtype='uint8')
+train_axial_lbl = np.zeros([38778], dtype='uint8')
 train_coronal_lbl = np.zeros([33649], dtype='uint8')
 train_sagittal_lbl = np.zeros([34370],dtype='uint8')
 
 i = 0
 
-train_dataset_idx = 0
+train_axial_idx = 0
 train_sagittal_idx = 0
 train_coronal_idx = 0
 
@@ -106,22 +107,21 @@ dir_train="C:/admin/masters/AI/gan/MRNet-v1.0/train"
 
 def to_rgb(img,wid,hei):# -> Resizing image to fit as (WIDTH,HEIGHT,3)
     img = cv2.resize(img, (wid,hei), interpolation = cv2.INTER_AREA) 
-    img_rgb = np.asarray(np.dstack((img, img, img)), dtype=np.uint8)
-    return img_rgb
-
+    return img
+    
 def getTheDataLabelPerView_(obj,save_in,idx):
-    global train_dataset_idx , train_sagittal_idx , train_coronal_idx
+    global train_axial_idx , train_sagittal_idx , train_coronal_idx
     for j in tqdm(range(len(obj))): # 0 -> s (For every view)
-        if (save_in == 'train_dataset'):
-            train_dataset[train_dataset_idx] = to_rgb(obj[j],WIDTH,HEIGHT) # -> save each image as (WIDTH,HEIGHT,3)
-            train_dataset_lbl[train_dataset_idx] = train_label[idx] # -> Giving all images the same label as patient.
-            train_dataset_idx += 1
+        if (save_in == 'train_axial'):
+            train_axial[train_axial_idx] = to_rgb(obj[j],WIDTH,HEIGHT) # -> save each image as (WIDTH,HEIGHT)
+            train_axial_lbl[train_axial_idx] = train_label[idx] # -> Giving all images the same label as patient.
+            train_axial_idx += 1
         elif(save_in == 'train_coronal'):
-            train_coronal[train_coronal_idx] = to_rgb(obj[j],WIDTH,HEIGHT) # -> save each image as (WIDTH,HEIGHT,3)
+            train_coronal[train_coronal_idx] = to_rgb(obj[j],WIDTH,HEIGHT) # -> save each image as (WIDTH,HEIGHT)
             train_coronal_lbl[train_coronal_idx] = train_label[idx] # -> Giving all images the same label as patient.
             train_coronal_idx += 1
         else:
-            train_sagittal[train_sagittal_idx] = to_rgb(obj[j],WIDTH,HEIGHT) # -> save each image as (WIDTH,HEIGHT,3)
+            train_sagittal[train_sagittal_idx] = to_rgb(obj[j],WIDTH,HEIGHT) # -> save each image as (WIDTH,HEIGHT)
             train_sagittal_lbl[train_sagittal_idx] = train_label[idx] # -> Giving all images the same label as patient.
             train_sagittal_idx += 1
 
@@ -136,12 +136,12 @@ for folder in sorted(os.listdir(dir_train)):
             continue
         img_dir=os.path.join(type_dir,img)
         if i == 0:
-            getTheDataLabelPerView_(np.load(img_dir).astype('uint8'),'train_dataset',idx)
+            getTheDataLabelPerView_(np.load(img_dir).astype('uint8'),'train_axial',idx)
         elif i == 1:
             getTheDataLabelPerView_(np.load(img_dir).astype('uint8'),'train_coronal',idx)
         elif i == 2:
             getTheDataLabelPerView_(np.load(img_dir).astype('uint8'),'train_sagittal',idx)
-        idx += 1 
+        idx += 1
     i+=1      
             
 #load y_train
@@ -169,16 +169,6 @@ for folder in sorted(os.listdir(dir_valid)):
     elif i==2:
       valid_.append(np.load(img_dir).astype('uint8'))
   i+=1       
-
-'''
-          
-#train_images = train_images.reshape(train_images.shape[0], 28, 28, 1).astype('float32')
-#train_images = (train_images - 127.5) / 127.5 # Normalize the images to [-1, 1]
-BUFFER_SIZE = 60000
-BATCH_SIZE = 256
-# Batch and shuffle the data
-train_dataset = tf.data.Dataset.from_tensor_slices(train_images).shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
-'''
 
 BUFFER_SIZE = 60000
 BATCH_SIZE = 256
@@ -295,7 +285,7 @@ def train(dataset, epochs):
     for image_batch in dataset:
         train_step(image_batch)
 
-    # Produce images for the GIF as we go
+        # Produce images for the GIF as we go
     display.clear_output(wait=True)
     generate_and_save_images(generator,
                              epoch + 1,
@@ -310,7 +300,6 @@ def train(dataset, epochs):
     # Generate after the final epoch
     display.clear_output(wait=True)
     generate_and_save_images(generator, epochs, seed)
-
 
 def generate_and_save_images(model, epoch, test_input):
     # Notice `training` is set to False.
@@ -329,6 +318,9 @@ def generate_and_save_images(model, epoch, test_input):
 
 
 # % % time
+train_axial = train_axial.reshape(train_axial.shape[0], 28, 28, 1).astype('float32')
+train_axial = (train_axial - 127.5) / 127.5 # Normalize the images to [-1, 1]
+train_dataset = tf.data.Dataset.from_tensor_slices(train_axial).shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
 train(train_dataset, EPOCHS)
 
 checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
