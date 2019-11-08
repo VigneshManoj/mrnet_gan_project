@@ -139,8 +139,6 @@ for folder in sorted(os.listdir(dir_train)):
             getTheDataLabelPerView_(np.load(img_dir).astype('uint8'),'train_axial',idx)
         elif i == 1:
             getTheDataLabelPerView_(np.load(img_dir).astype('uint8'),'train_coronal',idx)
-        elif i == 2:
-            getTheDataLabelPerView_(np.load(img_dir).astype('uint8'),'train_sagittal',idx)
         idx += 1
     i+=1      
             
@@ -164,9 +162,6 @@ for folder in sorted(os.listdir(dir_valid)):
       valid_.append(np.load(img_dir).astype('uint8'))
       
     elif i==1:
-      valid_.append(np.load(img_dir).astype('uint8'))
-      
-    elif i==2:
       valid_.append(np.load(img_dir).astype('uint8'))
   i+=1       
 
