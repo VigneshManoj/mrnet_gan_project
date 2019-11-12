@@ -59,7 +59,16 @@ for c in csvs:
                 valid_meniscus_lbl.append(', '.join(row)[5])
             i += 1
 
-
+'''
+In the dataset, labels are given in 3 files:
+train-abnormal.csv/valid-abnormal.csv  - contains labels for each patient for train/validation dataset: 1 if abormal       , 0 if not abormal
+train-acl.csv/valid-acl.csv           - contains labels for each patient for train/validation dataset: 1 if acl tear      , 0 if no acl tear
+train-meniscus.csv/valid-meniscus.csv - contains labels for each patient for train/validation dataset: 1 if meniscus tear , 0 if no meniscus tear
+This function bit-packs three conditions into a single number from 0-7.
+Bit 0 -> meniscus tear
+Bit 1 -> acl tear
+Bit 2 -> abnormal
+'''
 def getTheLabels(a, b, c):
     # print "length of each is ", len(a), len(b), len(c)
     labels = [0] * len(a)
@@ -72,6 +81,17 @@ def getTheLabels(a, b, c):
 # print "train acl lbl ", train_acl_lbl
 # Encoding all labels to be a number from (0-7) (Abnormal,ACL,Meniscus)
 # GAN doesn't look like using labels
+'''
+The mapping of issue for each patient in train_lablel and valid_label is as follows:
+0 -> No issues
+1 -> meniscus tear
+2 -> acl tear
+3 -> meniscus tear + acl tear
+4 -> abnormal
+5 -> abnormal + meniscus tear
+6 -> abnormal + acl tear
+7 -> abnormal + meniscus tear + acl tear  
+'''
 train_label = getTheLabels(train_abnormal_lbl, train_acl_lbl, train_meniscus_lbl)
 valid_label = getTheLabels(valid_abnormal_lbl, valid_acl_lbl, valid_meniscus_lbl)
 del (train_abnormal_lbl)
