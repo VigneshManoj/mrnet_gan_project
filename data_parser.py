@@ -8,9 +8,6 @@ from tqdm import tqdm
 from IPython import display
 #(train_images, train_labels), (_, _) = tf.keras.datasets.mnist.load_data()
 
-WIDTH = 28
-HEIGHT = 28
-
 #load y_train and y_test
 train_acl_lbl = []
 train_abnormal_lbl = []
