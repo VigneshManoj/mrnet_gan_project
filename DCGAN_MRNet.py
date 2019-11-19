@@ -139,6 +139,8 @@ for folder in sorted(os.listdir(dir_train)):
             getTheDataLabelPerView_(np.load(img_dir).astype('uint8'),'train_axial',idx)
         elif i == 1:
             getTheDataLabelPerView_(np.load(img_dir).astype('uint8'),'train_coronal',idx)
+        elif i == 2:
+            getTheDataLabelPerView_(np.load(img_dir).astype('uint8'),'train_sagittal',idx)
         idx += 1
     i+=1      
             
@@ -312,20 +314,19 @@ def generate_and_save_images(model, epoch, test_input):
     plt.show()
 
 
-# % % time
-train_axial = train_axial.reshape(train_axial.shape[0], 28, 28, 1).astype('float32')
-train_axial = (train_axial - 127.5) / 127.5 # Normalize the images to [-1, 1]
-train_dataset = tf.data.Dataset.from_tensor_slices(train_axial).shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
-train(train_dataset, EPOCHS)
-
-checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
-
+    
 # Display a single image using the epoch number
 def display_image(epoch_no):
       return PIL.Image.open('image_at_epoch_{:04d}.png'.format(epoch_no))
 
-
-display_image(EPOCHS)
+train_datasets = np.array([train_axial, train_coronal, train_sagittal])
+for i in range(train_datasets.shape[0]):
+    train_dataset = train_datasets[i].reshape(train_datasets[i].shape[0], 28, 28, 1).astype('float32')
+    train_dataset = (train_dataset - 127.5) / 127.5 # Normalize the images to [-1, 1]
+    dataset = tf.data.Dataset.from_tensor_slices(train_dataset).shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
+    train(dataset, EPOCHS)
+    checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
+    display_image(EPOCHS)
 
 anim_file = 'dcgan.gif'
 
