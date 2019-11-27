@@ -8,7 +8,7 @@ from keras.layers import Input, Add, Dense, Activation, ZeroPadding2D, BatchNorm
 from keras.models import Model, load_model
 from keras.initializers import glorot_uniform
 from keras.utils import multi_gpu_model
-# from keras.utils import plot_model
+from keras.callbacks import ModelCheckpoint
 # # from IPython.display import SVG
 # from keras.utils.vis_utils import model_to_dot
 # import keras.backend as K
@@ -334,9 +334,16 @@ model = ResNet50(input_shape = (ROWS, COLS, CHANNELS), classes = CLASSES)
 parallel_model = Mult_GPU_model(model, n_gpu=2)
 
 parallel_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-parallel_model.fit(X_train, Y_train, epochs=1, batch_size=8)
+
+# Save checkpoint
+filepath_checkpoint = "/home/vvarier/ai_project/output_file/resnet50_checkpoint.hdf5"
+checkpoint = ModelCheckpoint(filepath_checkpoint, monitor='val_acc', verbose = 1, save_best_only=True, mode='max')
+
+parallel_model.fit(X_train, Y_train, epochs=50, batch_size=256)
 preds = parallel_model.evaluate(X_test, Y_test)
 print ("Loss = " + str(preds[0]))
 print ("Test Accuracy = " + str(preds[1]))
-parallel_model.summary()
-parallel_model.save('ResNet50.h5')
+# parallel_model.summary()
+parallel_model.save('/home/vvarier/ai_project/output_file/weights_file/ResNet50.h5')
+print ("The model has been saved successfully!")
+print ("The test accuracy was ", preds[1])
