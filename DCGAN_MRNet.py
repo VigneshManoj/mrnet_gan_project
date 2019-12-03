@@ -199,7 +199,7 @@ generator = make_generator_model()
 noise = tf.random.normal([1, 100])
 generated_image = generator(noise, training=False)
 
-plt.imshow(generated_image[0, :, :, 0], cmap='gray')
+#plt.imshow(generated_image[0, :, :, 0], cmap='gray')
 
 def make_discriminator_model():
     model = tf.keras.Sequential()
@@ -245,7 +245,7 @@ checkpoint = tf.train.Checkpoint(generator_optimizer=generator_optimizer,
                                  discriminator=discriminator)
 
 
-EPOCHS = 1
+EPOCHS = 50
 noise_dim = 100
 num_examples_to_generate = 8
 
@@ -279,20 +279,20 @@ def train(dataset, epochs):
     for epoch in range(epochs):
         start = time.time()
 
-    for image_batch in dataset:
-        train_step(image_batch)
+        for image_batch in dataset:
+            train_step(image_batch)
 
-        # Produce images for the GIF as we go
-    display.clear_output(wait=True)
-    generate_and_save_images(generator,
-                             epoch + 1,
-                             seed)
+            # Produce images for the GIF as we go
+        display.clear_output(wait=True)
+        generate_and_save_images(generator,
+                                 epoch + 1,
+                                 seed)
 
-    # Save the model every 2 epochs
-    if (epoch + 1) % 2 == 0:
-        checkpoint.save(file_prefix = checkpoint_prefix)
+        # Save the model every 2 epochs
+        if (epoch + 1) % 2 == 0:
+            checkpoint.save(file_prefix = checkpoint_prefix)
 
-    print ('Time for epoch {} is {} sec'.format(epoch + 1, time.time()-start))
+        print ('Time for epoch {} is {} sec'.format(epoch + 1, time.time()-start))
 
     # Generate after the final epoch
     display.clear_output(wait=True)
@@ -311,7 +311,7 @@ def generate_and_save_images(model, epoch, test_input):
         plt.axis('off')
 
     plt.savefig('image_at_epoch_{:04d}.png'.format(epoch))
-    plt.show()
+#    plt.show()
 
 
     
