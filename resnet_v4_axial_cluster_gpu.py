@@ -8,6 +8,8 @@ from keras.layers import Input, Add, Dense, Activation, ZeroPadding2D, BatchNorm
 from keras.models import Model, load_model
 from keras.initializers import glorot_uniform
 from keras.utils import multi_gpu_model
+from matplotlib import pyplot as plt
+
 from keras.callbacks import ModelCheckpoint
 # # from IPython.display import SVG
 # from keras.utils.vis_utils import model_to_dot
@@ -25,7 +27,7 @@ i = 0
 csvs = ["train-acl.csv", "train-abnormal.csv", "train-meniscus.csv", "valid-acl.csv", "valid-abnormal.csv",
         "valid-meniscus.csv"]
 for c in csvs:
-    with open('/home/vvarier/ai_project/MRNet-v1.0/' + c, 'r') as csvfile:
+    with open('/home/vignesh/PycharmProjects/AI_Course/Project/MRNet-v1.0/' + c, 'r') as csvfile:
         read = csv.reader(csvfile, delimiter=' ', quotechar='|')
         if i == 0:
             for row in read:
@@ -91,7 +93,7 @@ train_axial_idx = 0
 train_sagittal_idx = 0
 train_coronal_idx = 0
 
-dir_train = "/home/vvarier/ai_project/MRNet-v1.0/train"
+dir_train = "/home/vignesh/PycharmProjects/AI_Course/Project/MRNet-v1.0/train"
 
 
 def to_rgb(img, wid, hei):  # -> Resizing image to fit as (WIDTH,HEIGHT)
@@ -140,7 +142,7 @@ for folder in sorted(os.listdir(dir_train)):
 # load y_train
 valid_ = []
 
-dir_valid = "/home/vvarier/ai_project/MRNet-v1.0/train"
+dir_valid = "/home/vignesh/PycharmProjects/AI_Course/Project/MRNet-v1.0/train"
 i = 0
 for folder in sorted(os.listdir(dir_valid)):
     if folder == ".DS_Store":
@@ -169,7 +171,7 @@ def convert_to_one_hot(Y, C):
 train_axial_lbl = train_axial_lbl.reshape(38778, 1)
 print("label shape ", train_axial_lbl.shape)
 
-x_train, x_test, y_train, y_test = train_test_split(train_axial, train_axial_lbl, test_size=0.2, random_state=42)
+x_train, x_test, y_train, y_test = train_test_split(train_axial[0:100, :, :], train_axial_lbl[0:100, :], test_size=0.2, random_state=42)
 
 x_train = np.stack([x_train], axis=-1)
 x_test = np.stack([x_test], axis=-1)
@@ -328,22 +330,66 @@ def ResNet50(input_shape=(256, 256, 1), classes=8):
     model = Model(inputs=X_input, outputs=X, name='ResNet50')
 
     return model
-
+'''
 model = ResNet50(input_shape = (ROWS, COLS, CHANNELS), classes = CLASSES)
-parallel_model = Mult_GPU_model(model, n_gpu=2)
+# allel_model = Mult_GPU_model(model, n_gpu=2)
 
-parallel_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
 # Save checkpoint
-filepath_checkpoint = "/home/vvarier/ai_project/output_file/resnet50_axial_checkpoint.hdf5"
-checkpoint = ModelCheckpoint(filepath_checkpoint, monitor='val_acc', verbose = 1, save_best_only=True, mode='max')
-
-parallel_model.fit(X_train, Y_train, epochs=50, batch_size=256)
-preds = parallel_model.evaluate(X_test, Y_test)
+filepath_checkpoint = "/home/vvarier/ai_project/output_file/weights-improvement-{epoch:02d}-{val_accuracy:.2f}.hdf5"
+checkpoint = ModelCheckpoint(filepath_checkpoint, monitor='val_accuracy', verbose = 1, save_best_only=True, mode ='auto', period=5)
+callbacks_list =[checkpoint]
+model.fit(X_train, Y_train, epochs=50, batch_size=256,callbacks=callbacks_list, validation_split=0.2)
+preds = model.evaluate(X_test, Y_test)
 print ("Loss = " + str(preds[0]))
-print ("Test Accuracy axial = " + str(preds[1]))
-# parallel_model.summary()
-parallel_model.save('/home/vvarier/ai_project/output_file/weights_file/ResNet50_axial.h5')
+print ("Test Accuracy = " + str(preds[1]))
+# model.summary()
+model.save('/home/vvarier/ai_project/output_file/weights_file/ResNet50.h5')
 print ("The model has been saved successfully!")
-print ("The test accuracy was axial ", preds[1])
+print ("The test accuracy was ", preds[1])
+
+
+model.load_weights("weights-improvement-25-0.72.hdf5")
+
+
+# evaluate loaded model on test data
+model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+score = model.evaluate(X_test, Y_test, verbose=0)
+print("%s: %.2f%%" % (model.metrics_names[1], score[1] * 100))
+
+'''
+
+axial = np.load("./dataset/MRNet-v1.0/train/axial/0000.npy")
+coronal = np.load("./dataset/MRNet-v1.0/train/coronal/0000.npy")
+sagittal = np.load("./dataset/MRNet-v1.0/train/sagittal/0000.npy")
+
+fig, (ax1, ax2, ax3, ax4, ax5, ax6) = plt.subplots(1, 6, figsize = (15, 5))
+
+ax1.imshow(axial[0, :, :], 'gray')
+ax1.set_title('Case 0 | Slice 1 | axial')
+
+ax2.imshow(coronal[0, :, :], 'gray')
+ax2.set_title('Case 0 | Slice 1 | coronal')
+
+ax3.imshow(sagittal[0, :, :], 'gray')
+ax3.set_title('Case 0 | Slice 1 | sagittal')
+model = load_model('/home/vignesh/Desktop/ResNet50.h5')
+model.load_weights('/home/vignesh/Desktop/weights-improvement-50-0.76.hdf5')
+# model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# Save checkpoint
+# filepath_checkpoint = "/home/vvarier/ai_project/output_file/weights-improvement-rerun-{epoch:02d}-{val_accuracy:.2f}.hdf5"
+# checkpoint = ModelCheckpoint(filepath_checkpoint, monitor='val_accuracy', verbose = 1, save_best_only=True, mode ='auto', period=5)
+# callbacks_list =[checkpoint]
+# model.fit(X_train, Y_train, epochs=25, batch_size=256,callbacks=callbacks_list, validation_split=0.2)
+preds = model.evaluate(X_test, Y_test)
+pred_image = model.predict(axial[0, :, :])
+print ("Loss = " + str(preds[0]))
+print ("Test Accuracy = " + str(preds[1]))
+# model.summary()
+# model.save('/home/vvarier/ai_project/output_file/weights_file/ResNet50_rerun.h5')
+print ("Predicted image ", pred_image)
+
+
 

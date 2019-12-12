@@ -46,7 +46,7 @@ i = 0
 csvs = ["train-acl.csv", "train-abnormal.csv", "train-meniscus.csv", "valid-acl.csv", "valid-abnormal.csv",
         "valid-meniscus.csv"]
 for c in csvs:
-    with open('C:/Fall19/AI/Project/dataset/MRNet-v1.0/' + c, newline='') as csvfile:
+    with open('/home/vvarier/ai_project/MRNet-v1.0/' + c, newline='') as csvfile:
         read = csv.reader(csvfile, delimiter=' ', quotechar='|')
         if i == 0:
             for row in read:
@@ -108,7 +108,7 @@ train_axial_idx = 0
 train_sagittal_idx = 0
 train_coronal_idx = 0
 
-dir_train = "C:/Fall19/AI/Project/dataset/MRNet-v1.0/train"
+dir_train = "/home/vvarier/ai_project/MRNet-v1.0/train"
 
 
 def to_rgb(img, wid, hei):  # -> Resizing image to fit as (WIDTH,HEIGHT,3)
@@ -136,7 +136,7 @@ def getTheDataLabelPerView_(obj, save_in, idx):
 for folder in sorted(os.listdir(dir_train)):
     idx = 0
     if folder == ".DS_Store"or folder == 'DG1__DS_DIR_HDR':
-        continue;
+        continue
     type_dir = os.path.join(dir_train, folder)
     os.chdir(type_dir)
     for img in sorted(os.listdir(type_dir)):
@@ -155,17 +155,17 @@ for folder in sorted(os.listdir(dir_train)):
 # load y_train
 valid_ = []
 
-dir_valid = "C:/Fall19/AI/Project/dataset/MRNet-v1.0/valid"
+dir_valid =  "/home/vvarier/ai_project/MRNet-v1.0/train"
 i = 0
 for folder in sorted(os.listdir(dir_valid)):
     if folder == ".DS_Store"or folder == 'DG1__DS_DIR_HDR':
-        continue;
+        continue
     type_dir = os.path.join(dir_valid, folder)
 
     os.chdir(type_dir)
     for img in sorted(os.listdir(type_dir)):
         if img == ".DS_Store"or img == 'DG1__DS_DIR_HDR':
-            continue;
+            continue
         img_dir = os.path.join(type_dir, img)
 
         if i == 0:
